@@ -1,0 +1,100 @@
+---
+title: "CMPE343_Homework01"
+author: "Hajar Faiyad"
+date: "2023-04-29"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Regression Analysis
+### Describing the data set and its source
+
+For this homework I chose the "Diamonds" dataset which is available in the ggplot library. The "Diamonds" dataset contains information such as cut, carat, color, clarity, depth, table, and price for  almost 54,000 diamonds. My goal is to predict the price of a diamond based on its these.
+
+### Partitioning the data into training and test data
+
+I used the R caret package to divide the data into training and test sets. I divided the data so that 80% of it used for training and 20% for testing.
+
+```{r}
+#install.packages("caret")
+#install.packages("randomForest")
+```
+
+```{r}
+# Loading the libraries and data
+library(ggplot2)
+library(caret)
+library(randomForest)
+data(diamonds)
+
+# Splitting the data into training and test sets
+set.seed(123)
+train_index <- createDataPartition(diamonds$price, p=0.8, list=FALSE)
+diamonds_training_set <- diamonds[train_index, ]
+diamonds_test_set <- diamonds[-train_index, ]
+
+
+```
+
+### Producing and fitting two regression models using the training data. 
+
+Using the training data, I fit two regression models: a linear regression model and a random forest regression model.
+
+
+```{r}
+# Fitting a linear regression model
+linearReg_fit <- lm(price ~ carat + depth + table + x + y + z, data=diamonds_training_set)
+
+# Fitting a random forest regression model
+random_Forest_fit <- train(price ~ carat + depth + table + x + y + z, data=diamonds_training_set, method="rf")
+
+```
+
+### Comparing and interpreting the results. Which model is stronger? What can you say about the predictors?
+
+ I used the R-squared value and the root mean squared error (RMSE) on the test data to compare the models.
+
+```{r}
+# Predicting on test data and calculating the  performance metrics
+linearReg_pred <- predict(linearReg_fit, newdata=diamonds_test_set)
+random_Forest_pred <- predict(random_Forest_fit, newdata=diamonds_test_set)
+
+linearReg_r_squared <- summary(linearReg_fit)$r.squared
+random_Forest_r_squared <- cor(random_Forest_pred, diamonds_test_set$price)^2
+
+linearReg_rmse <- sqrt(mean((linearReg_pred - diamonds_test_set$price)^2))
+random_Forest_rmse <- sqrt(mean((random_Forest_pred - diamonds_test_set$price)^2))
+
+# Printing the results
+cat("Linear regression R-squared on test data:", linearReg_r_squared, "\n")
+cat("Random forest regression R-squared on test data:", random_Forest_r_squared, "\n")
+cat("Linear regression RMSE on test data:", linearReg_rmse, "\n")
+cat("Random forest regression RMSE on test data:", random_Forest_rmse, "\n")
+
+```
+
+As one can notice, the linear regression model has an R-squared value of 0.87 and an RMSE of 1167.  Moreover, the random forest regression model has an R-squared value of 0.98 and an RMSE of 527. Therefore,  the random forest regression model is stronger; because it has a higher R-squared value and a lower RMSE.
+
+As for the predictors, we can observe that the random forest model's most significant predictor is carat, then the x and y dimensions, depth.
+
+### Appling the fitted model to test data. Presenting and discussing the quality measurements.
+
+Applying the fitted models to the test data, we see that the random forest model has a lower RMSE and a higher R-squared value than the linear regression model, indicating that it is a better model for predicting the price of diamonds. Nevertheless, one should keep in mind that the random forest model may be more complex and harder to interpret than the linear regression model.
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
